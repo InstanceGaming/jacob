@@ -1,0 +1,10 @@
+[project]
+name = "Jacob's Boilerplate"
+version = "0.0.1"
+authors = ["Jacob Jewett"]
+description = "Collection of code that I end up needing in just about every Python project."
+requires-python = ">=3.10"
+dynamic = ["version"]
+
+[project.optional-dependencies]
+loguru = ["loguru"]
