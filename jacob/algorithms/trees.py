@@ -10,7 +10,7 @@ class TreeNode(ABC):
     
     @property
     def is_parent(self):
-        return self._children is not None
+        return len(self._children)
     
     @property
     def node_id(self):
@@ -44,7 +44,7 @@ class TreeNode(ABC):
     def insert_child(self, index: int, node: 'TreeNode'):
         self._children.insert(index, node)
     
-    def insert_child_around(self, existing_node: 'TreeNode', direction: Literal[-1, 1], node: 'TreeNode') -> int:
+    def insert_child_adjacent(self, existing_node: 'TreeNode', direction: Literal[-1, 1], node: 'TreeNode') -> int:
         for i, n in enumerate(self._children):
             if n == existing_node:
                 insertion_index = i + direction
@@ -60,7 +60,7 @@ class TreeNode(ABC):
     
     def change_parent(self, new_parent: 'TreeNode'):
         self._parent = new_parent
-        
+    
     def change_depth(self, new_depth: int):
         self._depth = new_depth
     
@@ -85,7 +85,10 @@ def link_nodes(nodes: List[TreeNode]):
         try:
             previous_index = i - 1
             node.previous_node = nodes[previous_index]
-            
+        except ValueError:
+            pass
+
+        try:
             next_index = i + 1
             node.next_node = nodes[next_index]
         except ValueError:
@@ -110,13 +113,13 @@ def populate_hierarchy(nodes: List[TreeNode]):
             parent = parent_stack[-1]
         elif depth_delta == 1:
             parent = node.previous_node
-        
+            
             # prevent duplicate root nodes
             if parent.depth:
                 parent_stack.append(parent)
         else:
             raise ValueError(f'invalid depth delta {depth_delta}')
-    
+        
         node.change_parent(parent)
         parent.append_child(node)
 
@@ -130,22 +133,15 @@ class TreeTraverser(ABC):
         for i, node in enumerate(nodes, start=start):
             yield i, node
     
-    @abstractmethod
-    def process_branch(self, i: int, node: TreeNode):
-        pass
-    
-    @abstractmethod
-    def process_leaf(self, i: int, node: TreeNode):
-        pass
-    
-    def traverse(self,
-                 nodes: List[TreeNode],
-                 whitelist: Optional[List[TreeNode]] = None,
-                 blacklist: Optional[List[TreeNode]] = None):
-        for i, node in self.iter_nodes(nodes, start=1):
+    def process_branch(self,
+                       nodes: List[TreeNode],
+                       whitelist: Optional[List[TreeNode]] = None,
+                       blacklist: Optional[List[TreeNode]] = None,
+                       start: int = 0):
+        for i, node in self.iter_nodes(nodes, start=start):
             if self.max_depth != -1 and i > self.max_depth:
                 break
-                
+            
             if whitelist is not None and node not in whitelist:
                 continue
             
@@ -153,9 +149,14 @@ class TreeTraverser(ABC):
                 continue
             
             if node.is_parent:
-                if self.process_branch(i, node):
-                    break
-            
-            if node.is_child:
+                self.process_branch(node.children,
+                                    whitelist=whitelist,
+                                    blacklist=blacklist,
+                                    start=i)
+            else:
                 if self.process_leaf(i, node):
                     break
+
+    @abstractmethod
+    def process_leaf(self, i: int, node: TreeNode) -> bool:
+        pass

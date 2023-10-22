@@ -1,5 +1,6 @@
 import platform
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Tuple
 
 
 def compact_datetime(dt: datetime, tz=None) -> str:
@@ -34,7 +35,7 @@ def compact_datetime(dt: datetime, tz=None) -> str:
     return f'{date_text}{year_text}{time_text}'
 
 
-def dhms(seconds) -> Tuple[int, int, int, int]:
+def format_dhms(seconds) -> Tuple[int, int, int, int]:
     seconds_to_minute = 60
     seconds_to_hour = 60 * seconds_to_minute
     seconds_to_day = 24 * seconds_to_hour
@@ -68,7 +69,16 @@ def format_ms(ms):
     return None
 
 
-def format_timedelta(td, prefix=None, format_spec=None):
+def format_us(us):
+    if us < 1000:
+        if isinstance(us, float):
+            return f'{us:01.2f}us'
+        return f'{us}us'
+    else:
+        return format_ms(us / 1000)
+
+
+def format_timedelta(td: timedelta, prefix=None, format_spec=None):
     prefix = prefix if not None else ''
     format_spec = format_spec if format_spec is not None else '02.2f'
 
