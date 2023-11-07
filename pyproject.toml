@@ -9,3 +9,6 @@ dynamic = ["version", "description"]
 
 [project.urls]
 Home = "https://instancegaming.net"
+
+[project.optional-dependencies]
+loguru = ["loguru"]
