@@ -1,10 +1,11 @@
-[project]
-name = "Jacob's Boilerplate"
-version = "0.0.1"
-authors = ["Jacob Jewett"]
-description = "Collection of code that I end up needing in just about every Python project."
-requires-python = ">=3.10"
-dynamic = ["version"]
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
 
-[project.optional-dependencies]
-loguru = ["loguru"]
+[project]
+name = "jacob"
+authors = [{name = "Jacob Jewett", email = "jacoblj3333@gmail.com"}]
+dynamic = ["version", "description"]
+
+[project.urls]
+Home = "https://instancegaming.net"

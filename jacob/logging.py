@@ -141,7 +141,7 @@ def setup_sink(l,
 
 
 def setup_logger(log_levels: Union[SinkLevels, str],
-                 custom_levels: Optional[Set[CustomLevel]],
+                 custom_levels: Optional[Set[CustomLevel]] = None,
                  log_file: Optional[os.PathLike] = None,
                  rotation: timedelta = timedelta(days=1),
                  retention: timedelta = timedelta(days=7)):
