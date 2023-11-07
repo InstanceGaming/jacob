@@ -36,7 +36,7 @@ class SinkLevels(TypedDict):
 class CustomLevel:
     id: int
     name: str
-    color_code: Optional[str]
+    color_code: Optional[str] = None
 
 
 def parse_log_level_shorthand(l, arg: Optional[str]) -> SinkLevels:
