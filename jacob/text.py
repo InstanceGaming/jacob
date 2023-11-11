@@ -10,8 +10,8 @@ def format_binary_literal(ba: Union[bytearray, bytes]) -> str:
     return ' '.join([format(b, '08b') for b in ba])
 
 
-def conditional(msg, cond=False, paren=False, prefix=' ', postfix='') -> str:
-    if msg is not None or cond:
+def post_pend(msg, cond=False, paren=True, prefix=' ', postfix='') -> str:
+    if cond and msg:
         if paren:
             return f'{prefix}({msg}){postfix}'
         return f'{prefix}{msg}{postfix}'
