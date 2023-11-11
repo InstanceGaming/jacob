@@ -129,3 +129,13 @@ def filepath_to_uri(path):
     # I know about `os.sep` and `os.altsep` but I want to leave
     # some flexibility for hard coding separators.
     return quote(str(path).replace("\\", "/"), safe="/~!*()'")
+
+
+csl_default_separator = ', '
+
+
+def csl(values, separator=csl_default_separator) -> str:
+    """
+    Comma separated list of values.
+    """
+    return separator.join(values)
