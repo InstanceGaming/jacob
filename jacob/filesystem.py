@@ -5,9 +5,10 @@ import tempfile
 from pathlib import Path
 from typing import Optional, Iterable, List
 from jacob.text import clean_text
+from jacob.types import PathLike
 
 
-def fix_path(raw_path: Optional[os.PathLike]) -> Optional[Path]:
+def fix_path(raw_path: Optional[PathLike]) -> Optional[Path]:
     """
     Clean up a path to have all environment variables expanded, the user
     "~" placeholder expanded, and the path slashes normalized.
@@ -19,7 +20,7 @@ def fix_path(raw_path: Optional[os.PathLike]) -> Optional[Path]:
     return None
 
 
-def fix_paths(paths: Iterable[Optional[os.PathLike]]) -> List[Optional[Path]]:
+def fix_paths(paths: Iterable[Optional[PathLike]]) -> List[Optional[Path]]:
     """
     Call fix_path() on a collection of paths.
     """
@@ -128,7 +129,7 @@ def coerce_filename(unsanitized, allow_spaces=False) -> Optional[str]:
     return None
 
 
-def ensure_extension(original: os.PathLike, extension: str) -> Path:
+def ensure_extension(original: PathLike, extension: str) -> Path:
     """
     Append a file extension if not present.
     

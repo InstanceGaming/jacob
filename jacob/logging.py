@@ -6,9 +6,11 @@ from datetime import timedelta
 from functools import partialmethod
 from pathlib import Path
 from typing import Optional, TypedDict, Union, Tuple, Set
+from jacob.types import PathLike
 
 
 QUENCH_LOG_EXCEPTIONS = True
+RECOMMENDED_LEVELS = 'DEBUG,INFO;stderr=ERROR;file=INFO,CRITICAL'
 LOG_LEVEL_PATTERN = re.compile(r'^([a-z_]+|\d+)(,([a-z_]+|\d+))?$', flags=re.IGNORECASE)
 CUSTOM_LEVEL_NAME_PATTERN = re.compile(r'^[a-z_][a-z0-9_]+$', flags=re.IGNORECASE)
 
@@ -30,8 +32,8 @@ class SinkLevels(TypedDict):
     stdout: Tuple[int, int]
     stderr: Tuple[int, int]
     file: Tuple[int, int]
-    
-    
+
+
 @dataclass(frozen=True)
 class CustomLevel:
     id: int
@@ -39,32 +41,33 @@ class CustomLevel:
     color_code: Optional[str] = None
 
 
-def parse_log_level_shorthand(l, arg: Optional[str]) -> SinkLevels:
-    def _parse_value(_sink, _l1) -> tuple:
-        _re_result = LOG_LEVEL_PATTERN.match(_l1)
-        if _re_result is not None:
-            def _coerce_number(_l2):
+def parse_log_level_shorthand(l, spec: Optional[str]) -> SinkLevels:
+    def _parse_range(sink, syntax) -> tuple:
+        pattern_result = LOG_LEVEL_PATTERN.match(syntax)
+        if pattern_result is not None:
+            def coerce_level(_value: Union[int, str]) -> int:
                 try:
-                    _l2 = int(_l2)
+                    return int(_value)
                 except ValueError:
                     try:
-                        _l2 = l.level(_l2).no
+                        return l.level(_value).no
                     except ValueError:
-                        raise ValueError(f'unknown logging min_level "{_l2}" for sink "{_sink}"')
-                return _l2
+                        raise ValueError(f'unknown logging level "{_value}" for sink "{sink}"')
             
-            lower = _coerce_number(_re_result.group(1))
-            upper = _re_result.group(3)
+            lower = coerce_level(pattern_result.group(1))
+            upper_text = pattern_result.group(3)
             
-            if upper is not None:
-                upper = _coerce_number(upper)
+            upper: Optional[int] = None
+            if upper_text is not None:
+                upper = coerce_level(upper_text) + 1
                 
-                if lower >= upper:
-                    raise ValueError(f'impossible logging min_level range for sink "{_sink}" ({lower} >= {upper})')
+                if lower > upper:
+                    raise ValueError(f'impossible logging lower level range defined for sink '
+                                     f'"{sink}" ({lower} > {upper})')
             
             return lower, upper
         else:
-            raise ValueError(f'invalid logging min_level "{_l1}" for sink "{_sink}"')
+            raise ValueError(f'invalid logging level "{syntax}" for sink "{sink}"')
     
     levels = {
         'default': (0, sys.maxsize),
@@ -72,9 +75,9 @@ def parse_log_level_shorthand(l, arg: Optional[str]) -> SinkLevels:
         'stderr' : None,
         'file'   : None
     }
-    if arg:
-        cleaned = arg.strip()
-        default_set = False
+    if spec:
+        cleaned = spec.strip()
+        default_defined = False
         for part in cleaned.split(';'):
             part = part.strip()
             if '=' in part:
@@ -84,13 +87,13 @@ def parse_log_level_shorthand(l, arg: Optional[str]) -> SinkLevels:
                 if key not in levels.keys():
                     raise KeyError(f'unknown logging sink "{key}"')
                 
-                levels[key] = _parse_value(key, kv_parts[1])
+                levels[key] = _parse_range(key, kv_parts[1])
             else:
-                if default_set:
+                if default_defined:
                     raise ValueError('default already defined')
                 
-                levels['default'] = _parse_value('default', part)
-                default_set = True
+                levels['default'] = _parse_range('default', part)
+                default_defined = True
     
     default_level = levels.pop('default')
     for k, v in levels.items():
@@ -105,11 +108,15 @@ def setup_sink(l,
                levels: Tuple[int, Optional[int]],
                color=False,
                timestamp=False,
-               backtrace=False,
                rotation=None,
                retention=None,
                compression=None,
-               mode='a'):
+               mode='a',
+               serialize=False,
+               backtrace=False,
+               diagnose=False,
+               enqueue=False,
+               context=None):
     fmt = '<level>{level: >8}</level>: {message} '
     if timestamp:
         fmt = '[{time:YYYY-MM-DD hh:mm:ss A}] ' + fmt
@@ -120,8 +127,12 @@ def setup_sink(l,
         'colorize' : color,
         'level'    : levels[0],
         'format'   : fmt,
+        'serialize': serialize,
         'backtrace': backtrace,
+        'diagnose' : diagnose,
         'catch'    : QUENCH_LOG_EXCEPTIONS,
+        'enqueue'  : enqueue,
+        'context'  : context
     }
     
     max_level = levels[1]
@@ -142,11 +153,18 @@ def setup_sink(l,
 
 def setup_logger(log_levels: Union[SinkLevels, str],
                  custom_levels: Optional[Set[CustomLevel]] = None,
-                 log_file: Optional[os.PathLike] = None,
+                 log_file: Optional[PathLike] = None,
                  rotation: timedelta = timedelta(days=1),
-                 retention: timedelta = timedelta(days=7)):
+                 retention: timedelta = timedelta(days=7),
+                 standard_json=False,
+                 file_json=False,
+                 backtrace=True,
+                 diagnose=False,
+                 enqueue=False,
+                 context=None):
     try:
         import loguru as _loguru_module
+        
         bootstrap_logger = _loguru_module.logger
     except ModuleNotFoundError as e:
         raise ModuleNotFoundError('the "loguru" module failed to import; this '
@@ -173,19 +191,25 @@ def setup_logger(log_levels: Union[SinkLevels, str],
         logger = setup_sink(bootstrap_logger,
                             sys.stdout,
                             stdout_level,
-                            color=True)
+                            color=True,
+                            serialize=standard_json,
+                            enqueue=enqueue,
+                            context=context)
         
         logger = setup_sink(logger,
                             sys.stderr,
                             stderr_level,
-                            color=True)
+                            color=True,
+                            backtrace=backtrace,
+                            diagnose=diagnose,
+                            enqueue=enqueue,
+                            context=context)
         
         if log_file is not None:
-            
             file_level = log_levels['file']
             log_file = Path(log_file)
             try:
-                os.makedirs(os.path.dirname(log_file), exist_ok=True)
+                os.makedirs(log_file.absolute().parent, exist_ok=True)
             except OSError as e:
                 raise LoggingFileStructureError from e
             
@@ -193,10 +217,13 @@ def setup_logger(log_levels: Union[SinkLevels, str],
                                 log_file,
                                 file_level,
                                 timestamp=True,
-                                backtrace=True,
                                 rotation=rotation,
                                 retention=retention,
-                                compression='gz')
+                                compression='gz',
+                                serialize=file_json,
+                                backtrace=backtrace,
+                                diagnose=diagnose,
+                                enqueue=enqueue)
     
     except (ValueError, TypeError) as e:
         raise LoggingFacilityError from e

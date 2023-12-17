@@ -1,5 +1,6 @@
 import re
-from typing import Union, Optional
+from decimal import Decimal
+from typing import Union, Optional, SupportsIndex
 from urllib.parse import quote
 import unicodedata
 
@@ -139,3 +140,25 @@ def csl(values, separator=csl_default_separator) -> str:
     Comma separated list of values.
     """
     return separator.join(values)
+
+
+def coerce_integer(v: Optional[Union[str, int]],
+                   base: SupportsIndex = 10) -> Optional[Union[str, int]]:
+    try:
+        v = int(v, base)
+    except ValueError:
+        return v
+
+
+def coerce_float(v: Optional[Union[str, float]]) -> Optional[Union[str, float]]:
+    try:
+        v = float(v)
+    except ValueError:
+        return v
+
+
+def coerce_decimal(v: Optional[Union[str, Decimal]]) -> Optional[Union[str, Decimal]]:
+    try:
+        v = Decimal(v)
+    except ValueError:
+        return v
