@@ -228,6 +228,4 @@ def setup_logger(log_levels: Union[SinkLevels, str],
     except (ValueError, TypeError) as e:
         raise LoggingFacilityError from e
     
-    logger.info('log levels {}', ', '.join([f'{k}={v}' for k, v in log_levels.items()]))
-    
     return logger
