@@ -139,7 +139,9 @@ def setup_sink(l,
     if max_level is not None:
         kwargs.update({'filter': lambda record: record['level'].no < max_level})
     
-    if isinstance(sink, str):
+    if isinstance(sink, (str, Path)):
+        sink = str(sink)
+        
         kwargs.update({
             'rotation'   : rotation,
             'retention'  : retention,
