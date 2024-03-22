@@ -1,7 +1,7 @@
 import re
 from enum import Flag, auto
 from pathlib import Path
-from typing import Iterable, Optional, Any, Type, List
+from typing import Iterable, Optional, Any, Type, List, TextIO
 
 
 class ArgumentMode(Flag):
@@ -20,7 +20,7 @@ DEFAULT_ARGUMENT_MODE = ArgumentMode.ZERO_PLUS_VALUES
 class ArgumentError(Exception):
     
     def __init__(self, *args, **kwargs):
-        super()
+        super().__init__(*args)
         self.unknown_arguments: List[Argument] = kwargs.get('unknown_arguments')
 
 
@@ -39,6 +39,14 @@ class Ambiguity(ArgumentError):
 class Argument:
     reserved_names = []
     reserved_aliases = []
+    
+    @staticmethod
+    def validate_name(v: str) -> bool:
+        return v and re.match(r'[a-z][a-z\d_]+[a-z0-9]', v) is not None
+    
+    @staticmethod
+    def validate_alias(v: str) -> bool:
+        return v and re.match(r'[\-{1,2}][a-z][a-z\d-]+[a-z0-9]', v) is not None
 
     @property
     def name(self):
@@ -114,14 +122,6 @@ class Argument:
     
     def as_path(self) -> Optional[Path]:
         pass
-    
-    @staticmethod
-    def validate_name(v: str) -> bool:
-        return v and re.match(r'[a-z][a-z\d_]+[a-z0-9]', v) is not None
-
-    @staticmethod
-    def validate_alias(v: str) -> bool:
-        return v and re.match(r'[\-|\-\-][a-z][a-z\d-]+[a-z0-9]', v) is not None
 
 
 class CLI:
@@ -144,6 +144,9 @@ class CLI:
         pass
     
     def format_usage(self) -> str:
+        pass
+    
+    def print_usage(self, fd: Optional[TextIO] = None):
         pass
 
 
