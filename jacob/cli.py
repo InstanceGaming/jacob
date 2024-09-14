@@ -21,7 +21,7 @@ class ArgumentError(Exception):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
-        self.unknown_arguments: List[Argument] = kwargs.get('unknown_arguments')
+        self.unknown_arguments: Optional[List[Argument]] = kwargs.get('unknown_arguments')
 
 
 class InvalidUsage(ArgumentError):
@@ -76,12 +76,7 @@ class Argument:
     def hint(self):
         return self._hint
     
-    @property
-    def value(self):
-        return self._value
-
     def __init__(self,
-                 value: Optional[bytes],
                  name: str,
                  aliases: Optional[Iterable[str]] = None,
                  mode: ArgumentMode = DEFAULT_ARGUMENT_MODE,
@@ -89,7 +84,8 @@ class Argument:
                  omitted_value: Optional[Any] = None,
                  default_value: Optional[Any] = None,
                  required: bool = False,
-                 hint: Optional[str] = None):
+                 hint: Optional[str] = None,
+                 value: Optional[bytes] = None):
         assert Argument.validate_name(name)
         assert name not in self.reserved_names
         self.reserved_names.append(name)
@@ -99,7 +95,6 @@ class Argument:
             assert alias not in self.reserved_aliases
             self.reserved_aliases.append(alias)
         
-        self._value = value
         self._name = name
         self._aliases = set(aliases)
         self._mode = mode
@@ -108,13 +103,15 @@ class Argument:
         self._default_value = default_value
         self._required = required
         self._hint = hint
+        
+        self.value = value
     
     def as_text(self, encoding: str = 'utf-8', errors: str = 'strict') -> Optional[str]:
         if self.value:
             return self.value.decode(encoding, errors)
         return None
     
-    def as_int(self) -> Optional[int]:
+    def as_int(self, base: int = 10) -> Optional[int]:
         pass
     
     def as_float(self, rounding: int = -1) -> Optional[float]:

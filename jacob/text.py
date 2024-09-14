@@ -5,6 +5,11 @@ from urllib.parse import quote
 import unicodedata
 
 
+CSL_DEFAULT_SEPARATOR = ', '
+NORMALIZE_NEWLINES_PATTERN = re.compile(r'\r\n|\r')
+SMART_SPLIT_PATTERN = re.compile(r'''((?:[^\s'"]*(?:(?:"(?:[^"\\]|\\.)*" | '(?:[^'\\]|\\.)*')[^\s'"]*)+) | \S+)''')
+
+
 def format_binary_literal(ba: Union[bytearray, bytes]) -> str:
     if isinstance(ba, bytes):
         ba = bytearray(ba)
@@ -17,6 +22,13 @@ def post_pend(msg, cond=False, paren=True, prefix=' ', postfix='') -> str:
             return f'{prefix}({msg}){postfix}'
         return f'{prefix}{msg}{postfix}'
     return ''
+
+
+def placeholder(v, alternate='unknown', empty=False):
+    if v is not None or (empty and not v):
+        return v
+    else:
+        return alternate
 
 
 def format_byte_size(size: int, suffix='B') -> str:
@@ -56,18 +68,12 @@ def wrap(text, width) -> str:
     return ''.join(_generator())
 
 
-normalize_newlines_pattern = re.compile(r'\r\n|\r')
-
-
 def normalize_newlines(raw) -> str:
-    return re.sub(normalize_newlines_pattern, '\n', raw)
-
-
-smart_split_pattern = re.compile(r'''((?:[^\s'"]*(?:(?:"(?:[^"\\]|\\.)*" | '(?:[^'\\]|\\.)*')[^\s'"]*)+) | \S+)''')
+    return re.sub(NORMALIZE_NEWLINES_PATTERN, '\n', raw)
 
 
 def smart_split(text) -> str:
-    for bit in smart_split_pattern.finditer(str(text)):
+    for bit in SMART_SPLIT_PATTERN.finditer(str(text)):
         yield bit[0]
 
 
@@ -132,10 +138,7 @@ def filepath_to_uri(path):
     return quote(str(path).replace("\\", "/"), safe="/~!*()'")
 
 
-csl_default_separator = ', '
-
-
-def csl(values, separator=csl_default_separator) -> str:
+def csl(values, separator=CSL_DEFAULT_SEPARATOR) -> str:
     """
     Comma separated list of values.
     """
@@ -162,3 +165,23 @@ def coerce_decimal(v: Optional[Union[str, Decimal]]) -> Optional[Union[str, Deci
         v = Decimal(v)
     except ValueError:
         return v
+
+
+def try_int(v, default=None) -> Optional[int]:
+    if v is None:
+        return None
+    
+    try:
+        return int(v)
+    except ValueError:
+        return default or v
+
+
+def try_float(v, default=None) -> Optional[float]:
+    if v is None:
+        return None
+    
+    try:
+        return float(v)
+    except ValueError:
+        return default or v

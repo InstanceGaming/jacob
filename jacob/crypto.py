@@ -5,6 +5,9 @@ import string
 from jacob.encoding import force_bytes
 
 
+RANDOM_STRING_ALPHABET = string.ascii_lowercase + string.ascii_uppercase + string.digits
+
+
 def salted_hmac(secret: str,
                 key_salt,
                 value,
@@ -27,10 +30,7 @@ def salted_hmac(secret: str,
     return hmac.new(key, msg=force_bytes(value), digestmod=hasher)
 
 
-random_string_alphabet = string.ascii_lowercase + string.ascii_uppercase + string.digits
-
-
-def get_random_string(length, allowed_chars=random_string_alphabet):
+def get_random_string(length, allowed_chars=RANDOM_STRING_ALPHABET):
     """
     Return a securely generated random string.
 

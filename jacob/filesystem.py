@@ -8,6 +8,33 @@ from jacob.text import clean_text
 from jacob.types import PathLike
 
 
+# special file names that cannot be created on Win32 platforms
+WIN32_RESERVED_NAMES = (
+    'CON',
+    'PRN',
+    'AUX',
+    'NUL',
+    'COM1',
+    'COM2',
+    'COM3',
+    'COM4',
+    'COM5',
+    'COM6',
+    'COM7',
+    'COM8',
+    'COM9',
+    'LPT1',
+    'LPT2',
+    'LPT3',
+    'LPT4',
+    'LPT5',
+    'LPT6',
+    'LPT7',
+    'LPT8',
+    'LPT9'
+)
+
+
 def fix_path(raw_path: Optional[PathLike]) -> Optional[Path]:
     """
     Clean up a path to have all environment variables expanded, the user
@@ -28,6 +55,19 @@ def fix_paths(paths: Iterable[Optional[PathLike]]) -> List[Optional[Path]]:
     for path in paths:
         rv.append(fix_path(path))
     return rv
+
+
+def ensure_trailing_slash(path: os.PathLike) -> str:
+    """
+    Make sure a given path ends with the system path separator character.
+    :param path: original path-like object
+    :return: path string with slash at the end
+    """
+    path = str(path)
+    if path.endswith(os.sep):
+        return path
+    else:
+        return f'{path}{os.sep}'
 
 
 def is_dir_writeable(path):
@@ -81,32 +121,6 @@ def remove_dirs(name, stop_dir=None):
         head, tail = os.path.split(head)
 
 
-WIN32_RESERVED_NAMES = (
-    'CON',
-    'PRN',
-    'AUX',
-    'NUL',
-    'COM1',
-    'COM2',
-    'COM3',
-    'COM4',
-    'COM5',
-    'COM6',
-    'COM7',
-    'COM8',
-    'COM9',
-    'LPT1',
-    'LPT2',
-    'LPT3',
-    'LPT4',
-    'LPT5',
-    'LPT6',
-    'LPT7',
-    'LPT8',
-    'LPT9'
-)
-
-
 def coerce_filename(unsanitized, allow_spaces=False) -> Optional[str]:
     """
     Make a valid filename out of untrusted text, discarding invalid characters.
@@ -140,3 +154,25 @@ def ensure_extension(original: PathLike, extension: str) -> Path:
     original = Path(original)
     if not original.suffix or original.suffixes[-1] != extension:
         return original.with_suffix(extension)
+
+
+def simplify_paths(paths: List[Path]) -> None:
+    """
+    Process a list of relative paths (which are assumed to have a common root)
+    to remove paths that would be traversable via each longest, unique path.
+
+    :param paths: List of pathlib.Path() instances to modify in-place.
+    """
+    
+    paths.sort(key=lambda p: len(p.parts), reverse=True)
+    
+    i = 0
+    while i < len(paths):
+        current_path = paths[i]
+        j = len(paths) - 1
+        while j > 0:
+            other_path = paths[j]
+            if i != j and current_path.is_relative_to(other_path):
+                del paths[j]
+            j -= 1
+        i += 1

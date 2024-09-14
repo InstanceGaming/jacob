@@ -11,7 +11,8 @@ from jacob.types import PathLike
 
 QUENCH_LOG_EXCEPTIONS = True
 RECOMMENDED_LEVELS = 'DEBUG,WARNING;stderr=ERROR,CRITICAL;file=INFO,CRITICAL'
-LOG_LEVEL_PATTERN = re.compile(r'^([a-z_]+|\d+)(,([a-z_]+|\d+))?$', flags=re.IGNORECASE)
+RECOMMENDED_LEVELS_DEBUG = 'DEBUG,WARNING;stderr=ERROR,CRITICAL;file=DEBUG,CRITICAL'
+LOG_LEVEL_PATTERN = re.compile(r'^([a-z_]+|[0-9]+)(,([a-z_]+|[0-9]+))?$', flags=re.IGNORECASE)
 CUSTOM_LEVEL_NAME_PATTERN = re.compile(r'^[a-z_][a-z0-9_]+$', flags=re.IGNORECASE)
 
 

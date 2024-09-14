@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Literal
 
 
-class TreeNode(ABC):
+class TreeNode:
     
     @property
     def is_child(self):
@@ -26,7 +26,7 @@ class TreeNode(ABC):
     
     @property
     def children(self):
-        return self._children.copy()
+        return self._children
     
     def __init__(self,
                  node_id,
@@ -78,9 +78,19 @@ class TreeNode(ABC):
     def __eq__(self, other):
         assert isinstance(other, TreeNode)
         return self._node_id == other.node_id
+    
+    def __hash__(self):
+        return hash(self.node_id)
+    
+    def __repr__(self):
+        return f'<TreeNode {str(self.node_id)} {len(self._children)} children>'
 
 
-def link_nodes(nodes: List[TreeNode]):
+def link_nodes(nodes: List[TreeNode]) -> None:
+    """
+    Link list of tree nodes, assuming list is in sequential order in-place.
+    :param nodes: sequential list of tree nodes
+    """
     for i, node in enumerate(nodes):
         try:
             previous_index = i - 1
@@ -95,7 +105,11 @@ def link_nodes(nodes: List[TreeNode]):
             pass
 
 
-def populate_hierarchy(nodes: List[TreeNode]):
+def populate_hierarchy(nodes: List[TreeNode]) -> None:
+    """
+    Associate tree node children to parents and vice-versa in-place.
+    :param nodes: unassociated tree nodes
+    """
     parent_stack = []
     for i, node in enumerate(nodes):
         if node.depth == 0:

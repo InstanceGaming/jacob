@@ -1,5 +1,12 @@
-**/__pycache__
-*.egg-info/
-dist/
-env/
-**/.pytest_cache
+/env
+/venv
+/data
+/dist
+__pycache__/
+*secret*
+*.pytest_cache*/
+*.db
+*.zip
+*.7z
+*.egg-info
+*.wheel
