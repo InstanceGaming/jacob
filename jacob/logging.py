@@ -1,17 +1,17 @@
 import os
 import re
 import sys
-from dataclasses import dataclass
+import logging
+from enum import IntEnum, IntFlag
+from typing import Set, Tuple, Union, Optional, TypedDict
+from pathlib import Path
 from datetime import timedelta
 from functools import partialmethod
-from pathlib import Path
-from typing import Optional, TypedDict, Union, Tuple, Set
+from dataclasses import dataclass
 from jacob.types import PathLike
 
 
 QUENCH_LOG_EXCEPTIONS = True
-RECOMMENDED_LEVELS = 'DEBUG,WARNING;stderr=ERROR,CRITICAL;file=INFO,CRITICAL'
-RECOMMENDED_LEVELS_DEBUG = 'DEBUG,WARNING;stderr=ERROR,CRITICAL;file=DEBUG,CRITICAL'
 LOG_LEVEL_PATTERN = re.compile(r'^([a-z_]+|[0-9]+)(,([a-z_]+|[0-9]+))?$', flags=re.IGNORECASE)
 CUSTOM_LEVEL_NAME_PATTERN = re.compile(r'^[a-z_][a-z0-9_]+$', flags=re.IGNORECASE)
 
@@ -39,7 +39,51 @@ class SinkLevels(TypedDict):
 class CustomLevel:
     id: int
     name: str
-    color_code: Optional[str] = None
+    color_format: Optional[str] = None
+
+
+class LogLevel(IntEnum):
+    TRACE = 5
+    VERBOSE = 8
+    DEBUG = 10
+    INFO = 20
+    SUCCESS = 25
+    WARNING = 30
+    ERROR = 40
+    CRITICAL = 50
+
+
+LEVEL_COLOR_FORMATS = {
+    LogLevel.TRACE   : '<w><d>',
+    LogLevel.DEBUG   : '<e>',
+    LogLevel.INFO    : '<lw>',
+    LogLevel.SUCCESS : '<lg>',
+    LogLevel.WARNING : '<ly>',
+    LogLevel.ERROR   : '<lr><b>',
+    LogLevel.CRITICAL: '<r><b><l>'
+}
+
+
+def _generate_levels():
+    for level in LogLevel:
+        color_format = None
+        for k, v in reversed(LEVEL_COLOR_FORMATS.items()):
+            if k <= level:
+                color_format = v
+                break
+        yield CustomLevel(level.value, level.name, color_format=color_format)
+
+
+DEFAULT_LEVELS = _generate_levels()
+RECOMMENDED_LEVELS = (f'{LogLevel.INFO},{LogLevel.WARNING};'
+                      f'stderr={LogLevel.ERROR},{LogLevel.CRITICAL};'
+                      f'file={LogLevel.DEBUG},{LogLevel.CRITICAL}')
+RECOMMENDED_LEVELS_DEBUG = (f'{LogLevel.DEBUG},{LogLevel.WARNING};'
+                            f'stderr={LogLevel.ERROR},{LogLevel.CRITICAL};'
+                            f'file={LogLevel.DEBUG},{LogLevel.CRITICAL}')
+RECOMMENDED_LEVELS_ALL = (f'{LogLevel.TRACE},{LogLevel.WARNING};'
+                          f'stderr={LogLevel.ERROR},{LogLevel.CRITICAL};'
+                          f'file={LogLevel.TRACE},{LogLevel.CRITICAL}')
 
 
 def parse_log_level_shorthand(l, spec: Optional[str]) -> SinkLevels:
@@ -51,6 +95,7 @@ def parse_log_level_shorthand(l, spec: Optional[str]) -> SinkLevels:
                     return int(_value)
                 except ValueError:
                     try:
+                        _value = _value.upper()
                         return l.level(_value).no
                     except ValueError:
                         raise ValueError(f'unknown logging level "{_value}" for sink "{sink}"')
@@ -104,11 +149,35 @@ def parse_log_level_shorthand(l, spec: Optional[str]) -> SinkLevels:
     return levels
 
 
+class FormatContents(IntFlag):
+    NONE            = 0b00000000
+    MESSAGE         = 0b00000001
+    LEVEL           = 0b00000010
+    FUNCTION        = 0b00000100
+    SOURCE          = 0b00001000
+    MODULE          = 0b00010000
+    THREAD          = 0b00100000
+    PROCESS         = 0b01000000
+    TIMESTAMP       = 0b10000000
+
+
+DEFAULT_FORMAT_CONTENTS      = (FormatContents.LEVEL | 
+                                FormatContents.MESSAGE)
+DEFAULT_FILE_FORMAT_CONTENTS = (FormatContents.TIMESTAMP |
+                                FormatContents.PROCESS |
+                                FormatContents.THREAD |
+                                FormatContents.MODULE |
+                                FormatContents.SOURCE |
+                                FormatContents.FUNCTION |
+                                FormatContents.LEVEL | 
+                                FormatContents.MESSAGE)
+
+
 def setup_sink(l,
                sink,
                levels: Tuple[int, Optional[int]],
                color=False,
-               timestamp=False,
+               format_contents: FormatContents = DEFAULT_FORMAT_CONTENTS,
                rotation=None,
                retention=None,
                compression=None,
@@ -118,11 +187,37 @@ def setup_sink(l,
                diagnose=False,
                enqueue=False,
                context=None):
-    fmt = '<level>{level: >8}</level>: {message} '
-    if timestamp:
-        fmt = '[{time:YYYY-MM-DD hh:mm:ss A}] ' + fmt
-    if __debug__:
-        fmt += '<d>[<i>{file}:{line}</i>]</d> '
+    fmt = ''
+    
+    if format_contents & FormatContents.TIMESTAMP:
+        fmt += '<w>[{time:YYYY-MM-DD hh:mm:ss A}]</w>'
+    
+    if format_contents & FormatContents.PROCESS:
+        fmt += '<w>[{process}]</w>'
+    
+    if format_contents & FormatContents.THREAD:
+        fmt += '<w>[{thread}]</w>'
+        
+    if format_contents & FormatContents.MODULE:
+        fmt += '<w>[{module}]</w>'
+        
+    if format_contents & FormatContents.SOURCE:
+        fmt += '<w>[{file}:{line}]</w>'
+        
+    if format_contents & FormatContents.FUNCTION:
+        fmt += '<w>[{function}]</w>'
+        
+    if fmt:
+        fmt += ' '
+    
+    if format_contents & FormatContents.LEVEL:
+        fmt += '<level>{level: >8}</level>'
+        
+    if fmt:
+        fmt += ': '
+    
+    if format_contents & FormatContents.MESSAGE:
+        fmt += '{message} '
     
     kwargs = {
         'colorize' : color,
@@ -155,12 +250,17 @@ def setup_sink(l,
 
 
 def setup_logger(log_levels: Union[SinkLevels, str],
-                 custom_levels: Optional[Set[CustomLevel]] = None,
+                 custom_levels: Optional[Set[CustomLevel]] = DEFAULT_LEVELS,
                  log_file: Optional[PathLike] = None,
                  rotation: timedelta = timedelta(days=1),
                  retention: timedelta = timedelta(days=7),
                  standard_json=False,
+                 color=True,
+                 format_contents=DEFAULT_FORMAT_CONTENTS,
+                 file_format_contents=DEFAULT_FILE_FORMAT_CONTENTS,
                  file_json=False,
+                 file_mode='a',
+                 file_compression='gz',
                  backtrace=True,
                  diagnose=False,
                  enqueue=False,
@@ -180,9 +280,11 @@ def setup_logger(log_levels: Union[SinkLevels, str],
         klass = bootstrap_logger.__class__
         for custom_level in custom_levels:
             assert CUSTOM_LEVEL_NAME_PATTERN.match(custom_level.name)
-            color_format = f'<{custom_level.color_code}>' if custom_level.color_code else None
-            bootstrap_logger.level(custom_level.name, no=custom_level.id, color=color_format)
-            setattr(klass, custom_level.name, partialmethod(klass.log, custom_level.name))
+            try:
+                bootstrap_logger.level(custom_level.name, no=custom_level.id, color=custom_level.color_format)
+            except TypeError:
+                continue
+            setattr(klass, custom_level.name.lower(), partialmethod(klass.log, custom_level.name))
     
     if isinstance(log_levels, str):
         log_levels = parse_log_level_shorthand(bootstrap_logger, log_levels)
@@ -194,7 +296,8 @@ def setup_logger(log_levels: Union[SinkLevels, str],
         logger = setup_sink(bootstrap_logger,
                             sys.stdout,
                             stdout_level,
-                            color=True,
+                            color=color,
+                            format_contents=format_contents,
                             serialize=standard_json,
                             enqueue=enqueue,
                             context=context)
@@ -202,7 +305,8 @@ def setup_logger(log_levels: Union[SinkLevels, str],
         logger = setup_sink(logger,
                             sys.stderr,
                             stderr_level,
-                            color=True,
+                            color=color,
+                            format_contents=format_contents,
                             backtrace=backtrace,
                             diagnose=diagnose,
                             enqueue=enqueue,
@@ -219,16 +323,39 @@ def setup_logger(log_levels: Union[SinkLevels, str],
             logger = setup_sink(logger,
                                 log_file,
                                 file_level,
-                                timestamp=True,
+                                format_contents=file_format_contents,
                                 rotation=rotation,
                                 retention=retention,
-                                compression='gz',
+                                compression=file_compression,
+                                mode=file_mode,
                                 serialize=file_json,
                                 backtrace=backtrace,
                                 diagnose=diagnose,
-                                enqueue=enqueue)
+                                enqueue=enqueue,
+                                context=context)
     
     except (ValueError, TypeError) as e:
         raise LoggingFacilityError from e
     
     return logger
+
+
+def attach_standard_logger(loguru_logger,
+                           logger_name: str,
+                           minimum_level: int = logging.DEBUG,
+                           clear_handlers: bool = True):
+    class Handler(logging.Handler):
+        
+        def emit(self, record: logging.LogRecord):
+            _logger = loguru_logger.bind()
+            level = record.levelname
+            _logger.log(level, record.getMessage())
+    
+    standard_logger = logging.getLogger(logger_name)
+    standard_logger.setLevel(minimum_level)
+    
+    if clear_handlers:
+        for handler in standard_logger.handlers:
+            standard_logger.removeHandler(handler)
+    
+    standard_logger.addHandler(Handler())

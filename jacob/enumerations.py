@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Type, Any
+from typing import Any, Type
 
 
 def default_enum(et: Type[Enum], value: Any) -> dict:

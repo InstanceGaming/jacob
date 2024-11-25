@@ -4,19 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="07fe01c4-a28c-49d9-8753-c3b0d0158df8" name="Changes" comment="correct RECOMMENDED_LEVELS">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+    <list default="true" id="07fe01c4-a28c-49d9-8753-c3b0d0158df8" name="Changes" comment="refactoring, trees.py change, new utils">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/algorithms/procedural.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/algorithms/trees.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/algorithms/trees.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/cli.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/crypto.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/crypto.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/excel.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/excel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jacob/datetime/formatting.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/datetime/formatting.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jacob/datetime/timezones.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/datetime/timezones.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jacob/encoding.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/encoding.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jacob/enumerations.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/enumerations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/filesystem.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/filesystem.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/logging.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/logging.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/text.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/text.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/todo.md" beforeDir="false" afterPath="$PROJECT_DIR$/todo.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jacob/types.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/types.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/logging_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/logging_utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,23 +66,25 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python.logging_utils.executor": "Debug",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "F:/Projects/Code/Python/emanuel",
-    "settings.editor.selected.configurable": "preferences.general"
+    "last_opened_file_path": "F:/Projects/Code/Python/jacob",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RunManager" selected="Python.logging_utils">
     <configuration name="logging_utils" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="jacob" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
@@ -95,6 +99,7 @@
     </configuration>
     <configuration name="Python tests for logging_utils.test_parser_all" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="jacob" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
@@ -109,6 +114,7 @@
     </configuration>
     <configuration name="Python tests for logging_utils.test_setup_sink" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="jacob" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
@@ -121,6 +127,11 @@
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.logging_utils" />
+      <item itemvalue="Python tests.Python tests for logging_utils.test_parser_all" />
+      <item itemvalue="Python tests.Python tests for logging_utils.test_setup_sink" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.logging_utils" />
@@ -128,6 +139,13 @@
         <item itemvalue="Python tests.Python tests for logging_utils.test_parser_all" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-c69650fc56ca-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.15619.17" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -217,7 +235,15 @@
       <option name="project" value="LOCAL" />
       <updated>1706176534290</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="refactoring, trees.py change, new utils">
+      <option name="closed" value="true" />
+      <created>1726302509786</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1726302509787</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -242,6 +268,7 @@
     <MESSAGE value="logging enqueue option and parser bug fix, text coerce funcs" />
     <MESSAGE value="remove log levels log message during setup" />
     <MESSAGE value="correct RECOMMENDED_LEVELS" />
-    <option name="LAST_COMMIT_MESSAGE" value="correct RECOMMENDED_LEVELS" />
+    <MESSAGE value="refactoring, trees.py change, new utils" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactoring, trees.py change, new utils" />
   </component>
 </project>

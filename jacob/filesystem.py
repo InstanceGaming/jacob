@@ -1,9 +1,10 @@
 import os
 import re
 import sys
+import ctypes
 import tempfile
-from pathlib import Path
-from typing import Optional, Iterable, List
+from typing import List, Iterable, Optional
+from pathlib import Path, PurePosixPath
 from jacob.text import clean_text
 from jacob.types import PathLike
 
@@ -33,6 +34,7 @@ WIN32_RESERVED_NAMES = (
     'LPT8',
     'LPT9'
 )
+WIN32_FILE_ATTRIBUTE_HIDDEN = 0x02
 
 
 def fix_path(raw_path: Optional[PathLike]) -> Optional[Path]:
@@ -176,3 +178,29 @@ def simplify_paths(paths: List[Path]) -> None:
                 del paths[j]
             j -= 1
         i += 1
+        
+
+def absolute_resource_path(path: Path):
+    """
+    Get an absolute path to a resource intended to be kept with the program even
+    when bundled with PyInstaller. Assumes the resource is kept relative to the
+    current directory when not bundled.
+    """
+    bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath('.'))
+    return os.path.abspath(os.path.join(bundle_dir, path))
+
+
+def try_hide_directory(path: Path):
+    """
+    Set the hidden folder attribute on a given directory on Windows only.
+    :param path: path to hide
+    :return: bool True if successfully called Win32 API
+    """
+    ret = ctypes.windll.kernel32.SetFileAttributesW(str(path),
+                                                    WIN32_FILE_ATTRIBUTE_HIDDEN)
+    return bool(ret)
+
+
+def path_to_file_uri(path: Path, protocol: str = 'file'):
+    normalized = PurePosixPath(path)
+    return f'{protocol}:///{str(normalized)}'

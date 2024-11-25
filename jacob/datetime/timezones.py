@@ -1,5 +1,5 @@
+from time import altzone, timezone, localtime
 from datetime import timedelta
-from time import localtime, timezone, altzone
 
 
 def get_utc_offset() -> float:

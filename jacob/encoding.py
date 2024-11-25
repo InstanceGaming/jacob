@@ -1,8 +1,8 @@
 import codecs
-import datetime
 import locale
-from decimal import Decimal
+import datetime
 from types import NoneType
+from decimal import Decimal
 
 
 def get_system_encoding():

@@ -1,9 +1,14 @@
-from jacob.logging import RECOMMENDED_LEVELS
+from jacob.logging import (
+    RECOMMENDED_LEVELS,
+    RECOMMENDED_LEVELS_ALL,
+    LogLevel,
+    FormatContents
+)
 
 
 def test_setup_sink():
     from loguru import logger as loguru_logger
-    from jacob.logging import parse_log_level_shorthand, setup_logger
+    from jacob.logging import setup_logger, parse_log_level_shorthand
     result = parse_log_level_shorthand(loguru_logger, RECOMMENDED_LEVELS)
     logger = setup_logger(result, log_file='test.log')
     logger.trace('abc')
@@ -18,10 +23,19 @@ def test_setup_sink():
 def test_setup_logger():
     from jacob.logging import setup_logger
     
-    logger = setup_logger('0,WARNING;stderr=ERROR,CRITICAL')
-    logger.trace('abc')
-    logger.info('def')
-    logger.error('ghi')
-    logger.critical('jkl')
+    contents = (FormatContents.TIMESTAMP |
+                FormatContents.SOURCE |
+                FormatContents.LEVEL |
+                FormatContents.MESSAGE)
+    logger = setup_logger(RECOMMENDED_LEVELS_ALL,
+                          format_contents=contents,
+                          log_file='data/test.txt')
+    for level in LogLevel:
+        func = getattr(logger, level.name.lower())
+        func('test of level {}', level.name)
+    
+    with logger.catch():
+        raise ValueError('uh oh')
+
 
 test_setup_logger()

@@ -1,7 +1,7 @@
 import re
 from enum import Flag, auto
+from typing import Any, List, Type, TextIO, Iterable, Optional
 from pathlib import Path
-from typing import Iterable, Optional, Any, Type, List, TextIO
 
 
 class ArgumentMode(Flag):

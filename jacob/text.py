@@ -1,13 +1,24 @@
 import re
-from decimal import Decimal
-from typing import Union, Optional, SupportsIndex
-from urllib.parse import quote
 import unicodedata
+from typing import Union, Optional, SupportsIndex
+from decimal import Decimal
+from urllib.parse import quote
 
 
 CSL_DEFAULT_SEPARATOR = ', '
 NORMALIZE_NEWLINES_PATTERN = re.compile(r'\r\n|\r')
 SMART_SPLIT_PATTERN = re.compile(r'''((?:[^\s'"]*(?:(?:"(?:[^"\\]|\\.)*" | '(?:[^'\\]|\\.)*')[^\s'"]*)+) | \S+)''')
+
+
+def ellipsize(text: Optional[str], max_length: int) -> Optional[str]:
+    if text is None:
+        return None
+    
+    adjusted_length = max_length - 3
+    if len(text) > adjusted_length:
+        return text[:adjusted_length] + '...'
+    else:
+        return text
 
 
 def format_binary_literal(ba: Union[bytearray, bytes]) -> str:

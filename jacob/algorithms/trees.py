@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Literal
+from typing import List, Literal, Optional
 
 
 class TreeNode:

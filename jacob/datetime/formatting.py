@@ -1,6 +1,6 @@
 import platform
-from datetime import datetime, timedelta
 from typing import Tuple
+from datetime import datetime, timedelta
 
 
 def compact_datetime(dt: datetime, tz=None) -> str:
