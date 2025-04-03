@@ -95,13 +95,13 @@ def link_nodes(nodes: List[TreeNode]) -> None:
         try:
             previous_index = i - 1
             node.previous_node = nodes[previous_index]
-        except ValueError:
+        except IndexError:
             pass
 
         try:
             next_index = i + 1
             node.next_node = nodes[next_index]
-        except ValueError:
+        except IndexError:
             pass
 
 
