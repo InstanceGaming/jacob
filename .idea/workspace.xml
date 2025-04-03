@@ -5,20 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="07fe01c4-a28c-49d9-8753-c3b0d0158df8" name="Changes" comment="refactoring, trees.py change, new utils">
+      <change beforePath="$PROJECT_DIR$/.idea/jacob.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jacob.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/algorithms/trees.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/algorithms/trees.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/cli.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/crypto.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/crypto.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jacob/datetime/formatting.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/datetime/formatting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/datetime/timezones.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/datetime/timezones.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/encoding.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/encoding.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/enumerations.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/enumerations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/filesystem.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/filesystem.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/logging.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/logging.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/text.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/text.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jacob/types.py" beforeDir="false" afterPath="$PROJECT_DIR$/jacob/types.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/logging_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/logging_utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,14 +62,13 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "F:/Projects/Code/Python/jacob",
+    "last_opened_file_path": "C:/Users/jacob.jewett/Code/jacob",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RunManager" selected="Python.logging_utils">
     <configuration name="logging_utils" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="jacob" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -99,7 +90,6 @@
     </configuration>
     <configuration name="Python tests for logging_utils.test_parser_all" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="jacob" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
@@ -114,7 +104,6 @@
     </configuration>
     <configuration name="Python tests for logging_utils.test_setup_sink" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="jacob" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />

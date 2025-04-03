@@ -54,28 +54,53 @@ def format_dhms(seconds) -> Tuple[int, int, int, int]:
     return days, hours, minutes, seconds
 
 
+def format_seconds(s):
+    if s is not None:
+        if s < 60:
+            if isinstance(s, float):
+                return f'{s:01.2f}s'
+            else:
+                return f'{s:01d}s'
+        elif 60 <= s < 3600:
+            minutes = s / 60
+            return f'{minutes:01.2f}min'
+        else:
+            hours = s / 3600
+            return f'{hours:01.2f}h'
+    return None
+
+
 def format_ms(ms):
     if ms is not None:
-        if ms <= 1000:
+        if ms >= 1000:
+            return format_seconds(ms / 1000)
+        else:
             if isinstance(ms, float):
                 return f'{ms:01.2f}ms'
-            return f'{ms:01d}ms'
-        elif 1000 < ms <= 60000:
-            seconds = ms / 1000
-            return f'{seconds:01.2f}s'
-        elif ms > 60000:
-            minutes = ms / 60000
-            return f'{minutes:01.2f}min'
+            else:
+                return f'{ms:01d}ms'
     return None
 
 
 def format_us(us):
-    if us < 1000:
-        if isinstance(us, float):
-            return f'{us:01.2f}us'
-        return f'{us}us'
-    else:
-        return format_ms(us / 1000)
+    if us is not None:
+        if us >= 1000:
+            return format_ms(us / 1000)
+        else:
+            if isinstance(us, float):
+                return f'{us:01.2f}us'
+            else:
+                return f'{us}us'
+    return None
+
+
+def format_ns(ns: int):
+    if ns is not None:
+        if ns >= 1000:
+            return format_us(ns / 1000)
+        else:
+            return f'{ns:01d}ns'
+    return None
 
 
 def format_timedelta(td: timedelta, prefix=None, format_spec=None):
