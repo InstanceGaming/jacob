@@ -2,8 +2,9 @@ import os
 import re
 import sys
 import logging
+import functools
 from enum import IntEnum, IntFlag
-from typing import Set, Tuple, Union, Optional, TypedDict
+from typing import Set, Tuple, Union, Optional
 from pathlib import Path
 from datetime import timedelta
 from functools import partialmethod
@@ -28,7 +29,8 @@ class LoggingFacilityError(LoggerConfigError):
     pass
 
 
-class SinkLevels(TypedDict):
+@dataclass(frozen=True, slots=True)
+class SinkLevels:
     default: Tuple[int, int]
     stdout: Tuple[int, int]
     stderr: Tuple[int, int]
@@ -87,7 +89,7 @@ RECOMMENDED_LEVELS_ALL = (f'{LogLevel.TRACE},{LogLevel.WARNING};'
 
 
 def parse_log_level_shorthand(l, spec: Optional[str]) -> SinkLevels:
-    def _parse_range(sink, syntax) -> tuple:
+    def _parse_range(sink, syntax) -> Tuple[int, int]:
         pattern_result = LOG_LEVEL_PATTERN.match(syntax)
         if pattern_result is not None:
             def coerce_level(_value: Union[int, str]) -> int:
@@ -141,36 +143,45 @@ def parse_log_level_shorthand(l, spec: Optional[str]) -> SinkLevels:
                 levels['default'] = _parse_range('default', part)
                 default_defined = True
     
-    default_level = levels.pop('default')
     for k, v in levels.items():
-        if v is None:
-            levels[k] = default_level
+        if k != 'default':
+            if v is None:
+                levels[k] = levels['default']
     
-    return levels
+    return SinkLevels(
+        levels['default'],
+        levels['stdout'],
+        levels['stderr'],
+        levels['file']
+    )
 
 
 class FormatContents(IntFlag):
-    NONE            = 0b00000000
-    MESSAGE         = 0b00000001
-    LEVEL           = 0b00000010
-    FUNCTION        = 0b00000100
-    SOURCE          = 0b00001000
-    MODULE          = 0b00010000
-    THREAD          = 0b00100000
-    PROCESS         = 0b01000000
-    TIMESTAMP       = 0b10000000
+    NONE = 0b00000000
+    MESSAGE = 0b00000001
+    LEVEL = 0b00000010
+    FUNCTION = 0b00000100
+    SOURCE = 0b00001000
+    MODULE = 0b00010000
+    THREAD = 0b00100000
+    PROCESS = 0b01000000
+    TIMESTAMP = 0b10000000
 
 
-DEFAULT_FORMAT_CONTENTS      = (FormatContents.LEVEL | 
-                                FormatContents.MESSAGE)
+DEFAULT_FORMAT_CONTENTS = (FormatContents.LEVEL |
+                           FormatContents.MESSAGE)
 DEFAULT_FILE_FORMAT_CONTENTS = (FormatContents.TIMESTAMP |
                                 FormatContents.PROCESS |
                                 FormatContents.THREAD |
                                 FormatContents.MODULE |
                                 FormatContents.SOURCE |
                                 FormatContents.FUNCTION |
-                                FormatContents.LEVEL | 
+                                FormatContents.LEVEL |
                                 FormatContents.MESSAGE)
+
+
+def default_filter_func(record, max_level: Optional[int] = None):
+    return max_level is None or record['level'].no < max_level
 
 
 def setup_sink(l,
@@ -186,7 +197,8 @@ def setup_sink(l,
                backtrace=False,
                diagnose=False,
                enqueue=False,
-               context=None):
+               context=None,
+               filter_func=default_filter_func):
     fmt = ''
     
     if format_contents & FormatContents.TIMESTAMP:
@@ -197,22 +209,22 @@ def setup_sink(l,
     
     if format_contents & FormatContents.THREAD:
         fmt += '<w>[{thread}]</w>'
-        
+    
     if format_contents & FormatContents.MODULE:
         fmt += '<w>[{module}]</w>'
-        
+    
     if format_contents & FormatContents.SOURCE:
         fmt += '<w>[{file}:{line}]</w>'
-        
+    
     if format_contents & FormatContents.FUNCTION:
         fmt += '<w>[{function}]</w>'
-        
+    
     if fmt:
         fmt += ' '
     
     if format_contents & FormatContents.LEVEL:
         fmt += '<level>{level: >8}</level>'
-        
+    
     if fmt:
         fmt += ': '
     
@@ -232,8 +244,9 @@ def setup_sink(l,
     }
     
     max_level = levels[1]
-    if max_level is not None:
-        kwargs.update({'filter': lambda record: record['level'].no < max_level})
+    kwargs.update({
+        'filter': functools.partial(filter_func, max_level=max_level),
+    })
     
     if isinstance(sink, (str, Path)):
         sink = str(sink)
@@ -257,17 +270,18 @@ def setup_logger(log_levels: Union[SinkLevels, str],
                  standard_json=False,
                  color=True,
                  format_contents=DEFAULT_FORMAT_CONTENTS,
-                 file_format_contents=DEFAULT_FILE_FORMAT_CONTENTS,
+                 file_format_contents=None,
                  file_json=False,
                  file_mode='a',
                  file_compression='gz',
                  backtrace=True,
                  diagnose=False,
                  enqueue=False,
-                 context=None):
+                 context=None,
+                 filter_func=default_filter_func,
+                 file_filter_func=None):
     try:
         import loguru as _loguru_module
-        
         bootstrap_logger = _loguru_module.logger
     except ModuleNotFoundError as e:
         raise ModuleNotFoundError('the "loguru" module failed to import; this '
@@ -277,6 +291,16 @@ def setup_logger(log_levels: Union[SinkLevels, str],
     bootstrap_logger.remove()
     
     if custom_levels:
+        """
+        Hack for loguru version 0.7.3 to allow for re-defining the default log
+        level names. This worked in version 0.7.2 by just calling level() again.
+        If you know of a better way to do this, I'm all ears, but I don't want to
+        use different level names while still being free to use my own integer
+        scale.
+        """
+        logger_core = getattr(bootstrap_logger, '_core')
+        logger_core.levels.clear()
+        
         klass = bootstrap_logger.__class__
         for custom_level in custom_levels:
             assert CUSTOM_LEVEL_NAME_PATTERN.match(custom_level.name)
@@ -288,51 +312,56 @@ def setup_logger(log_levels: Union[SinkLevels, str],
     
     if isinstance(log_levels, str):
         log_levels = parse_log_level_shorthand(bootstrap_logger, log_levels)
-    
-    stdout_level = log_levels['stdout']
-    stderr_level = log_levels['stderr']
+    elif isinstance(log_levels, SinkLevels):
+        log_levels = log_levels
+    else:
+        raise TypeError('log_levels must be a str or SinkLevels instance')
     
     try:
         logger = setup_sink(bootstrap_logger,
                             sys.stdout,
-                            stdout_level,
+                            log_levels.stdout,
                             color=color,
                             format_contents=format_contents,
                             serialize=standard_json,
                             enqueue=enqueue,
-                            context=context)
+                            context=context,
+                            filter_func=filter_func)
         
         logger = setup_sink(logger,
                             sys.stderr,
-                            stderr_level,
+                            log_levels.stderr,
                             color=color,
                             format_contents=format_contents,
                             backtrace=backtrace,
                             diagnose=diagnose,
                             enqueue=enqueue,
-                            context=context)
+                            context=context,
+                            filter_func=filter_func)
         
         if log_file is not None:
-            file_level = log_levels['file']
             log_file = Path(log_file)
             try:
                 os.makedirs(log_file.absolute().parent, exist_ok=True)
             except OSError as e:
                 raise LoggingFileStructureError from e
             
-            logger = setup_sink(logger,
-                                log_file,
-                                file_level,
-                                format_contents=file_format_contents,
-                                rotation=rotation,
-                                retention=retention,
-                                compression=file_compression,
-                                mode=file_mode,
-                                serialize=file_json,
-                                backtrace=backtrace,
-                                diagnose=diagnose,
-                                enqueue=enqueue,
-                                context=context)
+            logger = setup_sink(
+                logger,
+                log_file,
+                log_levels.file,
+                format_contents=file_format_contents or format_contents or DEFAULT_FILE_FORMAT_CONTENTS,
+                rotation=rotation,
+                retention=retention,
+                compression=file_compression,
+                mode=file_mode,
+                serialize=file_json,
+                backtrace=backtrace,
+                diagnose=diagnose,
+                enqueue=enqueue,
+                context=context,
+                filter_func=file_filter_func or filter_func
+            )
     
     except (ValueError, TypeError) as e:
         raise LoggingFacilityError from e

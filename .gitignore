@@ -1,12 +1,5 @@
-/env
-/venv
-/data
-/dist
-__pycache__/
-*secret*
-*.pytest_cache*/
-*.db
-*.zip
-*.7z
-*.egg-info
-*.wheel
+.idea/
+data/
+env/
+*.egg-info/
+**/__pycache__

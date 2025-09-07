@@ -83,7 +83,7 @@ def normalize_newlines(raw) -> str:
     return re.sub(NORMALIZE_NEWLINES_PATTERN, '\n', raw)
 
 
-def smart_split(text) -> str:
+def smart_split(text):
     for bit in SMART_SPLIT_PATTERN.finditer(str(text)):
         yield bit[0]
 
@@ -153,27 +153,27 @@ def csl(values, separator=CSL_DEFAULT_SEPARATOR) -> str:
     """
     Comma separated list of values.
     """
-    return separator.join(values)
+    return separator.join([str(v) for v in values])
 
 
 def coerce_integer(v: Optional[Union[str, int]],
                    base: SupportsIndex = 10) -> Optional[Union[str, int]]:
     try:
-        v = int(v, base)
+        return int(v, base)
     except ValueError:
         return v
 
 
 def coerce_float(v: Optional[Union[str, float]]) -> Optional[Union[str, float]]:
     try:
-        v = float(v)
+        return float(v)
     except ValueError:
         return v
 
 
 def coerce_decimal(v: Optional[Union[str, Decimal]]) -> Optional[Union[str, Decimal]]:
     try:
-        v = Decimal(v)
+        return Decimal(v)
     except ValueError:
         return v
 
@@ -194,5 +194,15 @@ def try_float(v, default=None) -> Optional[float]:
     
     try:
         return float(v)
+    except ValueError:
+        return default or v
+
+
+def try_decimal(v, default=None) -> Optional[Decimal]:
+    if v is None:
+        return None
+    
+    try:
+        return Decimal(v)
     except ValueError:
         return default or v

@@ -97,7 +97,7 @@ def link_nodes(nodes: List[TreeNode]) -> None:
             node.previous_node = nodes[previous_index]
         except IndexError:
             pass
-
+        
         try:
             next_index = i + 1
             node.next_node = nodes[next_index]
@@ -170,7 +170,7 @@ class TreeTraverser(ABC):
             else:
                 if self.process_leaf(i, node):
                     break
-
+    
     @abstractmethod
     def process_leaf(self, i: int, node: TreeNode) -> bool:
         pass
