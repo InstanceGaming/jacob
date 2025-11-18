@@ -372,19 +372,20 @@ def setup_logger(log_levels: Union[SinkLevels, str],
 def attach_standard_logger(loguru_logger,
                            logger_name: str,
                            minimum_level: int = logging.DEBUG,
-                           clear_handlers: bool = True):
+                           clear_handlers: bool = True,
+                           prefix: str = '',
+                           force_level = None):
     class Handler(logging.Handler):
-        
         def emit(self, record: logging.LogRecord):
+            msg = f"{prefix}{record.getMessage()}"
             _logger = loguru_logger.bind()
-            level = record.levelname
-            _logger.log(level, record.getMessage())
-    
+            _logger.log(force_level or record.levelname, msg, exc_info=record.exc_info)
+
     standard_logger = logging.getLogger(logger_name)
     standard_logger.setLevel(minimum_level)
-    
+
     if clear_handlers:
-        for handler in standard_logger.handlers:
+        for handler in standard_logger.handlers[:]:
             standard_logger.removeHandler(handler)
-    
+
     standard_logger.addHandler(Handler())
