@@ -374,18 +374,25 @@ def attach_standard_logger(loguru_logger,
                            minimum_level: int = logging.DEBUG,
                            clear_handlers: bool = True,
                            prefix: str = '',
-                           force_level = None):
+                           force_level=None,
+                           propagate=None):
     class Handler(logging.Handler):
+        
         def emit(self, record: logging.LogRecord):
-            msg = f"{prefix}{record.getMessage()}"
+            msg = f'{prefix}{record.getMessage()}'
             _logger = loguru_logger.bind()
-            _logger.log(force_level or record.levelname, msg, exc_info=record.exc_info)
-
+            if record.exc_info:
+                _logger.log(force_level or record.levelname, msg, exc_info=record.exc_info)
+            else:
+                _logger.log(force_level or record.levelname, msg)
+    
     standard_logger = logging.getLogger(logger_name)
     standard_logger.setLevel(minimum_level)
-
+    
     if clear_handlers:
         for handler in standard_logger.handlers[:]:
             standard_logger.removeHandler(handler)
-
+    
     standard_logger.addHandler(Handler())
+    if propagate is not None:
+        standard_logger.propagate = bool(propagate)
