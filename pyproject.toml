@@ -1,14 +1,20 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "jacob"
-authors = [{name = "Jacob Jewett", email = "jacoblj3333@gmail.com"}]
-dynamic = ["version", "description"]
+version = "0.0.1"
+description = "Python boilerplate and utilites I end up using in pretty much all of my projects."
+authors = ["Jacob Jewett <jacoblj3333@gmail.com>"]
+packages = [{ include = "jacob" }]
 
-[project.urls]
-Home = "https://instancegaming.net"
+[tool.poetry.dependencies]
+python = "^3.8"
+loguru = "^0.7.3"
 
-[project.optional-dependencies]
-loguru = ["loguru"]
+[tool.poetry.group.loguru]
+optional = true
+
+[tool.poetry.group.loguru.dependencies]
+loguru = "0.7.3"
