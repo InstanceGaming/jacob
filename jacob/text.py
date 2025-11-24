@@ -45,7 +45,7 @@ def placeholder(v, alternate='unknown', empty=False):
 def format_byte_size(size: int, suffix='B') -> str:
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(size) < 1024.0:
-            return f'{size}{unit}{suffix}'
+            return f'{size:.{2 if unit else 0}f}{unit}{suffix}'
         size /= 1024.0
     return f'{size:.2f}Yi{suffix}'
 

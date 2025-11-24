@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "jacob"
-version = "0.0.1"
+version = "0.0.2"
 description = "Python boilerplate and utilites I end up using in pretty much all of my projects."
 authors = ["Jacob Jewett <jacoblj3333@gmail.com>"]
 packages = [{ include = "jacob" }]
