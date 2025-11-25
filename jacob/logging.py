@@ -29,7 +29,7 @@ class LoggingFacilityError(LoggerConfigError):
     pass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class SinkLevels:
     default: Tuple[int, int]
     stdout: Tuple[int, int]
