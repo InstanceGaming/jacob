@@ -69,9 +69,8 @@ LEVEL_COLOR_FORMATS = {
 def _generate_levels():
     for level in LogLevel:
         color_format = None
-        for k, v in reversed(LEVEL_COLOR_FORMATS.items()):
-            if k <= level:
-                color_format = v
+        for k, color_format in LEVEL_COLOR_FORMATS.items():
+            if k == level:
                 break
         yield CustomLevel(level.value, level.name, color_format=color_format)
 
@@ -229,7 +228,7 @@ def setup_sink(l,
         fmt += ': '
     
     if format_contents & FormatContents.MESSAGE:
-        fmt += '{message} '
+        fmt += '{message}'
     
     kwargs = {
         'colorize' : color,

@@ -44,7 +44,8 @@ def test_setup_logger():
                 FormatContents.MESSAGE)
     logger1 = setup_logger(RECOMMENDED_LEVELS_ALL,
                            format_contents=contents,
-                           log_file='data/test.log')
+                           log_file='data/test.log',
+                           diagnose=True)
     logger2 = logger1.bind(category='cat1')
     
     for level in LogLevel:
